@@ -25,7 +25,7 @@ def train_model_component() -> str:
     model_file_path = '/tmp/iris_model.pkl'
     joblib.dump(model, model_file_path)
 
-    # Return the path as a string
+    # Return the path as a string (it is a string)
     return model_file_path
 
 
@@ -35,10 +35,10 @@ def upload_model_to_vertex_ai(model_path: str):
     # Initialize the Vertex AI client
     aiplatform.init(project="YOUR_PROJECT_ID", location="us-central1")
 
-    # Upload the model to Vertex AI as a string (path)
+    # Ensure the artifact URI is passed as a string (path)
     model = aiplatform.Model.upload(
         display_name="iris-model",
-        artifact_uri=model_path,  # Ensure that `model_path` is a string
+        artifact_uri=model_path,  # This must be a string
         serving_container_image_uri="gcr.io/cloud-aiplatform/training/tf2-cpu.2-3:latest",
     )
 
@@ -67,6 +67,7 @@ Compiler().compile(
     pipeline_func=vertex_ai_pipeline,
     package_path="vertex_ai_pipeline.json"
 )
+
 
 
 
