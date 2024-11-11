@@ -3,12 +3,10 @@
 from kfp import dsl
 from kfp.v2.dsl import component
 from google.cloud import aiplatform
-import os
-import tensorflow as tf
+import joblib
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-import joblib
 
 # Define a simple training component (using scikit-learn for simplicity)
 @component
@@ -45,23 +43,28 @@ def upload_model_to_vertex_ai(model_path: str):
     model.deploy(machine_type="n1-standard-2")  # Deploy model to an endpoint
     return model.resource_name
 
+
+# Define the pipeline function
 @dsl.pipeline(
     name="vertex-ai-pipeline",
     pipeline_root="gs://YOUR_BUCKET_NAME/pipeline_root"
 )
 def vertex_ai_pipeline():
-    # Step 1: Train model
+    # Step 1: Train the model
     model_path = train_model_component()
 
     # Step 2: Upload and deploy model to Vertex AI
-    upload_model_to_vertex_ai(model_path)
+    upload_model_to_vertex_ai(model_path=model_path)  # Use keyword argument here
 
+
+# Compile the pipeline
 from kfp.v2.compiler import Compiler
 
 Compiler().compile(
     pipeline_func=vertex_ai_pipeline,
     package_path="vertex_ai_pipeline.json"
 )
+
 
 
 from google.cloud import aiplatform
