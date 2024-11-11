@@ -7,6 +7,7 @@ import joblib
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+import os
 
 # Define a simple training component (using scikit-learn for simplicity)
 @component
@@ -24,7 +25,8 @@ def train_model_component() -> str:
     model_file_path = '/tmp/iris_model.pkl'
     joblib.dump(model, model_file_path)
 
-    return model_file_path  # Return the path to the trained model
+    # Return the path as a string
+    return model_file_path
 
 
 # Define a component to upload the model to Vertex AI
@@ -33,14 +35,15 @@ def upload_model_to_vertex_ai(model_path: str):
     # Initialize the Vertex AI client
     aiplatform.init(project="YOUR_PROJECT_ID", location="us-central1")
 
-    # Upload the model to Vertex AI
+    # Upload the model to Vertex AI as a string (path)
     model = aiplatform.Model.upload(
         display_name="iris-model",
-        artifact_uri=model_path,
+        artifact_uri=model_path,  # Ensure that `model_path` is a string
         serving_container_image_uri="gcr.io/cloud-aiplatform/training/tf2-cpu.2-3:latest",
     )
 
-    model.deploy(machine_type="n1-standard-2")  # Deploy model to an endpoint
+    # Deploy model to an endpoint
+    model.deploy(machine_type="n1-standard-2")
     return model.resource_name
 
 
@@ -54,7 +57,7 @@ def vertex_ai_pipeline():
     model_path = train_model_component()
 
     # Step 2: Upload and deploy model to Vertex AI
-    upload_model_to_vertex_ai(model_path=model_path)  # Use keyword argument here
+    upload_model_to_vertex_ai(model_path=model_path)  # Pass the path as a string
 
 
 # Compile the pipeline
@@ -64,6 +67,7 @@ Compiler().compile(
     pipeline_func=vertex_ai_pipeline,
     package_path="vertex_ai_pipeline.json"
 )
+
 
 
 
